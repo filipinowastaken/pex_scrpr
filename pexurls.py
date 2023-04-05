@@ -119,7 +119,7 @@ def start_(strt=10000,end=911218):
             buddha = sorted(links)
             links = buddha
             if curlink != f"https://www.pinoyexchange.com/discussion/{discussion_id}/" or curlink != "https://www.pinoyexchange.com/entry/signin":
-                with open(pexurls_file, "a+") as f:
+                with open(pexurls_file, "w+") as f:
                     f.write("\n".join(links))
             discussion_id +=1
 
