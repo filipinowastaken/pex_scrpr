@@ -88,7 +88,7 @@ def get_pex_fileid(url,no_page_str=False):
 
 def url_get(url):
     headers = http_headers
-    print(f"START GET: {url}")
+    print(f"Start URL GET{url}")
     try:
         for i in range(1,4):
             response = requests.get(url, headers=headers)
@@ -97,7 +97,7 @@ def url_get(url):
                 return response.content
             elif response.status_code == 502 or response.status_code == 504:
                 print("Bad Gateway. Retrying...")
-                time.sleep(random.uniform(0, 1))    
+                time.sleep(random.uniform(0, 0))    
             else:
                 print(f"Error: Status code {response.status_code}")                
                 return None
@@ -109,29 +109,20 @@ def url_get(url):
         return None
 
 
-def pex_fetch_file(url,subdir="posts"):
+def pex_fetch_file(url):
     pex_fileid = get_pex_fileid(url)
-    temp_pex_data = f'{_tempdir}/{subdir}/{pex_fileid}'
-    download_efficient(url,temp_pex_data,pex_fileid,True)
-
-def download_efficient(url,path,fileid=False,returnfile=False):
-    displayLog = returnfile if returnfile == True else false
-    fileid = fileid if fileid is not False else path
-    if not not os.path.isfile(path):        
-        if displayLog: print(f"{fileid} : NOT EXIST. - {path}") 
+    temp_pex_data = f'{_tempdir}/posts/{pex_fileid}'
+    if os.path.isfile(temp_pex_data):
+        print(f"{pex_fileid} : FILE EXISTS. - {temp_pex_data}")
+        with open(temp_pex_data, 'rb') as f:
+            return f.read()
+    else:
+        print(f"{pex_fileid} : NOT EXIST. -  {temp_pex_data}")
         content = url_get(url)
         if content is not None:
-            with open(path, 'wb') as f:
+            with open(temp_pex_data, 'wb') as f:
                 f.write(content)
-                if returnfile:
-                    return content
-            return True
-    else:
-        if returnfile:
-            if displayLog: print(f"{fileid} : FILE EXISTS. -  {path}")
-            with open(temp_pex_data, 'rb') as f:
-                return f.read()
-    return False
+            return content
 
 # def download_efficient_return(url,)
 def pex_pfp_dl(user_name,user_id,user_pic):
@@ -198,6 +189,7 @@ def pex_fetch_allpages(url,i=1):
 
 def pex_fetch_somepages(url,i=1,to=0):    
     pex_fileid = get_pex_fileid(url)
+
     base_url = pex_remove_page_string(url)
     pex_page_id_noid= get_pex_fileid(url,True)
     total_pages = int(pex_get_pagenum(url))
@@ -209,10 +201,9 @@ def pex_fetch_somepages(url,i=1,to=0):
             print(f'{pex_fileid} : Page {i}/{total_pages} ({(i/total_pages)*100}%)')
             pex_fetch_file(f'{base_url}/p{i}')
         print(f"{pex_fileid}: DONE {i}/{total_pages}")
-
-
 def pex_readurlfile(txtname):
     # Define the regex pattern    
+    print("WHY")
     pattern = r'https?:\/\/(www\.)?pinoyexchange\.com*'
     with open(txtname, "r") as f:
         urls = f.readlines()
@@ -223,9 +214,13 @@ def pex_readurlfile(txtname):
     for url in urls:    
         print(url)
         if url.startswith("#"):
+            # print(url)
             continue # Skip the line and move to the next one
         if re.match(pattern, url):
             urls_accepted.append(url.strip())
+    # Print the resulting URLs
+    for url in urls_accepted:
+        print(url)
     return urls_accepted
 def _create_dirs():    
     
@@ -267,9 +262,6 @@ def __main_dl__():
             result.get()
         pool.close()
         pool.join()
-    
-    except Exception as e:
-        sys.exit()
     except KeyboardInterrupt:
         print("Program interrupted by user!")
         sys.exit()
